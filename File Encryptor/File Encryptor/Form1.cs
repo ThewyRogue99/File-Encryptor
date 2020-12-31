@@ -18,15 +18,12 @@ namespace File_Decryptor
             InitializeComponent();
             this.FormClosing += Form1_FormClosing;
             CenterToScreen();
-            remove_button.Enabled = true;
-            encrypt_button.Enabled = true;
-            decrypt_button.Enabled = true;
-            /*ThreadStart reference = new ThreadStart(getselect);
+            ThreadStart reference = new ThreadStart(getselect);
             Thread th = new Thread(reference);
             th.Start();
             reference = new ThreadStart(getcount);
             th = new Thread(reference);
-            th.Start();*/
+            th.Start();
         }
 
         public void getselect()
