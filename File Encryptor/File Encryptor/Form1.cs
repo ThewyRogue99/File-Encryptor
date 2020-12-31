@@ -18,12 +18,15 @@ namespace File_Decryptor
             InitializeComponent();
             this.FormClosing += Form1_FormClosing;
             CenterToScreen();
-            ThreadStart reference = new ThreadStart(getselect);
+            remove_button.Enabled = true;
+            encrypt_button.Enabled = true;
+            decrypt_button.Enabled = true;
+            /*ThreadStart reference = new ThreadStart(getselect);
             Thread th = new Thread(reference);
             th.Start();
             reference = new ThreadStart(getcount);
             th = new Thread(reference);
-            th.Start();
+            th.Start();*/
         }
 
         public void getselect()
@@ -96,7 +99,7 @@ namespace File_Decryptor
             {
                 File.ReadAllBytes(path);
             }
-            catch
+            catch(FileNotFoundException)
             {
                 return false;
             }
@@ -118,10 +121,13 @@ namespace File_Decryptor
             {
                 string path = pathlist[i];
                 int cont = loops;
-
-                if(!file_exists(path))
+                try
                 {
-                    MessageBox.Show("Failed to find file in " + path, "Failed to find a file", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    File.ReadAllBytes(path);
+                }
+                catch(Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Failed to encrypt a file", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     continue;
                 }
                 byte[] file = File.ReadAllBytes(path);
@@ -138,7 +144,15 @@ namespace File_Decryptor
                         //Loop until we can't find a file with the same index
                     }
                     string newpath = filedir + "\\encrypted" + cont.ToString() + ".enc";
-                    File.WriteAllBytes(newpath, encfile);
+                    try
+                    {
+                        File.WriteAllBytes(newpath, encfile);
+                    }
+                    catch(Exception ex)
+                    {
+                        MessageBox.Show(ex.Message, "Failed to encrypt a file", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        continue;
+                    }
                     File.Delete(path);
                     file_list.Items[file_list.Items.IndexOf(Path.GetFileName(path))] = "encrypted" + cont.ToString() + ".enc";
                     //Replace old file with the new encrypted file in our lists
@@ -160,9 +174,13 @@ namespace File_Decryptor
             for (int i = 0; i < pathlist.Count; i++)
             {
                 string path = pathlist[i];
-                if(!file_exists(path))
+                try
                 {
-                    MessageBox.Show("Failed to find file in " + path, "Failed to find a file", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    File.ReadAllBytes(path);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Failed to decrypt a file", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     continue;
                 }
                 byte[] file = File.ReadAllBytes(path);
@@ -173,15 +191,6 @@ namespace File_Decryptor
                     {
                         byte[] decfile = Cipher.DecryptFile(file, passbox.Text); //Decrypt file using decryption algorithm
                         string filedir = Path.GetDirectoryName(path);
-                        try
-                        {
-                            File.ReadAllBytes(path);
-                        }
-                        catch
-                        {
-                            MessageBox.Show("File path " + filedir + " doesn't exist", "File path doesn't exist", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            continue;
-                        }
                         string enctype = Encoding.ASCII.GetString(decfile);
                         decfile = decfile.Subset<byte>(0, enctype.LastIndexOf('\\')); //Get the file without its full name at the end of it
                         enctype = enctype.Substring(enctype.LastIndexOf('\\'), enctype.Length - enctype.LastIndexOf('\\')); //Get file name with its extension from the end of the file
@@ -189,9 +198,9 @@ namespace File_Decryptor
                         {
                             File.WriteAllBytes(filedir + enctype, decfile);
                         }
-                        catch
+                        catch(Exception ex)
                         {
-                            MessageBox.Show("Failed to decrypt the file (Probably password is wrong)", "Failed to decrypt a file", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            MessageBox.Show(ex.Message, "Failed to decrypt a file", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             continue;
                         }
                         File.Delete(path);
