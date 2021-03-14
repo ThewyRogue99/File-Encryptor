@@ -66,14 +66,12 @@ namespace File_Decryptor
             {
                 foreach(string path in OFD.FileNames)
                 {
-                    pathlist.Add(path);
+                    if(!pathlist.Contains(path))
+                        pathlist.Add(path);
                 }
                 foreach (string file in OFD.SafeFileNames)
                 {
-                    if (!file_list.Items.Contains(file))
-                    {
-                        file_list.Items.Add(file);
-                    }
+                    file_list.Items.Add(file);
                 }
             }
         }
@@ -113,6 +111,8 @@ namespace File_Decryptor
         private void encrypt_button_Click(object sender, EventArgs e)
         {
             int loops = 1; //This variable is used to define the file order ( because they will have the same name )
+            string errorList = "Following errors occurred:\n";
+            bool error = false;
             
             for(int i = 0; i < pathlist.Count; i++)
             {
@@ -124,7 +124,8 @@ namespace File_Decryptor
                 }
                 catch(Exception ex)
                 {
-                    MessageBox.Show(ex.Message, "Failed to encrypt a file", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    error = true;
+                    errorList += ex.Message + '\n';
                     continue;
                 }
                 byte[] file = File.ReadAllBytes(path);
@@ -147,7 +148,8 @@ namespace File_Decryptor
                     }
                     catch(Exception ex)
                     {
-                        MessageBox.Show(ex.Message, "Failed to encrypt a file", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        error = true;
+                        errorList += ex.Message + '\n';
                         continue;
                     }
                     File.Delete(path);
@@ -163,11 +165,15 @@ namespace File_Decryptor
                 }
                 ++loops;
             }
+
+            if (error)
+                MessageBox.Show(errorList, "Error List", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         private void decrypt_button_Click(object sender, EventArgs e)
         {
-            bool noencused = false; //This variable is used to notify user if an attempt was made to decrypt a file without .enc extension
+            string errorList = "Following errors occurred:\n";
+            bool error = false; //This variable is used to notify user if an attempt was made to decrypt a file without .enc extension
             for (int i = 0; i < pathlist.Count; i++)
             {
                 string path = pathlist[i];
@@ -177,7 +183,8 @@ namespace File_Decryptor
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show(ex.Message, "Failed to decrypt a file", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    error = true;
+                    errorList += ex.Message + '\n';
                     continue;
                 }
                 byte[] file = File.ReadAllBytes(path);
@@ -197,7 +204,8 @@ namespace File_Decryptor
                         }
                         catch(Exception ex)
                         {
-                            MessageBox.Show(ex.Message, "Failed to decrypt a file", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            error = true;
+                            errorList += ex.Message + '\n';
                             continue;
                         }
                         File.Delete(path);
@@ -213,12 +221,13 @@ namespace File_Decryptor
                 }
                 else
                 {
-                    noencused = true;
+                    error = true;
+                    errorList += path + " is not an .enc file\n";
                 }
             }
 
-            if (noencused)
-                MessageBox.Show("Some of the files weren't in .enc format so they were skipped", "Skipped files", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            if (error)
+                MessageBox.Show(errorList, "Error List", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 
